@@ -1,0 +1,34 @@
+[package]
+name = "ron-edit"
+version = "0.1.0"
+edition = "2021"
+categories = ["encoding"]
+description = "ron parser preserving all syntax information"
+keywords = ["parser"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/ModProg/ron-edit"
+documentation = "https://docs.rs/ron-edit"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dev-dependencies]
+include_dir = "0.7.3"
+insta = { version = "1.28.0", features = ["ron"] }
+ron = "0.8.0"
+serde = { version = "1.0.154", features = ["derive"] }
+
+
+[profile.dev.package.insta]
+opt-level = 3
+
+[profile.dev.package.similar]
+opt-level = 3
+
+[dependencies]
+derive_more = "0.99.17"
+macro_rules_attribute = "0.1.3"
+nom = "7.1.3"
+unicode-ident = "1.0.8"

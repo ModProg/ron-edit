@@ -1,0 +1,113 @@
+---
+source: src/lib.rs
+expression: ron
+---
+File(
+  extentions: [
+    WsLead(
+      leading: Whitespace([]),
+      content: Attribute(
+        after_pound: Whitespace([
+          Space(" "),
+          LineComment(" a comment\n"),
+          Space("    "),
+        ]),
+        after_exclamation: Whitespace([
+          Space(" "),
+        ]),
+        after_bracket: Whitespace([
+          Space("  "),
+        ]),
+        after_enable: Whitespace([
+          Space("\n"),
+        ]),
+        extentions: Separated(
+          values: [
+            (WsLead(
+              leading: Whitespace([
+                Space(" "),
+              ]),
+              content: "unwrap_newtypes",
+            ), Whitespace([
+              Space("\n "),
+            ])),
+            (WsLead(
+              leading: Whitespace([
+                Space(" "),
+              ]),
+              content: "implicit_some",
+            ), Whitespace([])),
+          ],
+          trailing_comma: false,
+          trailing_ws: Whitespace([]),
+        ),
+        after_paren: Whitespace([
+          Space("\n"),
+        ]),
+      ),
+    ),
+  ],
+  value: WsLead(
+    leading: Whitespace([
+      Space("\n"),
+      LineComment(" Line Comment\n"),
+      BlockComment(" block "),
+      Space("\n"),
+      BlockComment(" Block Comment /* Nested Block Comment */ "),
+      Space("\n"),
+    ]),
+    content: Struct(Struct(
+      ident: None,
+      fields: Separated(
+        values: [
+          (NamedField(
+            key: WsLead(
+              leading: Whitespace([
+                Space("\n    "),
+              ]),
+              content: "value",
+            ),
+            after_key: Whitespace([
+              Space(" \n\n    "),
+            ]),
+            value: WsLead(
+              leading: Whitespace([
+                Space(" "),
+              ]),
+              content: Str(Baked("hello")),
+            ),
+          ), Whitespace([
+            Space(" "),
+            LineComment(" comment\n"),
+            Space("    "),
+          ])),
+          (NamedField(
+            key: WsLead(
+              leading: Whitespace([
+                Space("\n    "),
+              ]),
+              content: "something_else",
+            ),
+            after_key: Whitespace([
+              Space(" "),
+              BlockComment(" "),
+            ]),
+            value: WsLead(
+              leading: Whitespace([
+                Space(" "),
+              ]),
+              content: Str(Baked("hi")),
+            ),
+          ), Whitespace([
+            Space("\n"),
+          ])),
+        ],
+        trailing_comma: false,
+        trailing_ws: Whitespace([]),
+      ),
+    )),
+  ),
+  trailing_ws: Whitespace([
+    Space("\n"),
+  ]),
+)

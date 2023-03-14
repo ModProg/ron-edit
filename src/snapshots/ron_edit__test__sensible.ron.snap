@@ -1,0 +1,69 @@
+---
+source: src/lib.rs
+expression: ron
+---
+File(
+  extentions: [],
+  value: WsLead(
+    leading: Whitespace([]),
+    content: Struct(Struct(
+      ident: None,
+      fields: Separated(
+        values: [
+          (NamedField(
+            key: WsLead(
+              leading: Whitespace([
+                Space("\n    "),
+              ]),
+              content: "value",
+            ),
+            after_key: Whitespace([]),
+            value: WsLead(
+              leading: Whitespace([
+                Space(" "),
+              ]),
+              content: Str(Baked("string")),
+            ),
+          ), Whitespace([])),
+          (NamedField(
+            key: WsLead(
+              leading: Whitespace([
+                Space("\n    "),
+              ]),
+              content: "value",
+            ),
+            after_key: Whitespace([]),
+            value: WsLead(
+              leading: Whitespace([
+                Space(" "),
+              ]),
+              content: Float(Float("inf")),
+            ),
+          ), Whitespace([])),
+          (NamedField(
+            key: WsLead(
+              leading: Whitespace([
+                Space("\n    "),
+              ]),
+              content: "value",
+            ),
+            after_key: Whitespace([]),
+            value: WsLead(
+              leading: Whitespace([
+                Space(" "),
+              ]),
+              content: Float(Float("+NaN")),
+            ),
+          ), Whitespace([
+            Space("\n"),
+          ])),
+        ],
+        trailing_comma: false,
+        trailing_ws: Whitespace([]),
+      ),
+    )),
+  ),
+  trailing_ws: Whitespace([
+    Space("\n"),
+  ]),
+)
