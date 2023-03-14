@@ -1,1 +1,1 @@
-tests/input/crlf.ron text eol=crlf
+tests/input/* binary
