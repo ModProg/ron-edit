@@ -10,7 +10,7 @@ pub enum Value<'s> {
     Bool(bool),
     List(List<'s>),
     Map(Map<'s>),
-    Unit(Unit<'s>),
+    Unit(&'s str),
     Tuple(Tuple<'s>),
     Struct(Struct<'s>),
 }
@@ -22,9 +22,9 @@ pub(crate) fn value(input: &str) -> IResult<Value> {
         map(value_char, Value::Char),
         map(value_list, Value::List),
         map(value_map, Value::Map),
-        map(value_unit, Value::Unit),
         map(value_tuple, Value::Tuple),
         map(value_struct, Value::Struct),
+        map(ident, Value::Unit),
     ))(input)
 }
 
@@ -129,7 +129,7 @@ fn value_char(s: &str) -> IResult<Char> {
 #[apply(ast)]
 #[derive(Display)]
 #[display(fmt = "[{_0}]")]
-pub struct List<'s>(Separated<'s, Value<'s>>);
+pub struct List<'s>(pub Separated<'s, Value<'s>>);
 fn value_list(s: &str) -> IResult<List> {
     map(delimited(char('['), separated(value), char(']')), List)(s)
 }
@@ -146,7 +146,7 @@ pub struct MapItem<'s> {
 #[apply(ast)]
 #[derive(Display)]
 #[display(fmt = "{{{_0}}}")]
-pub struct Map<'s>(Separated<'s, MapItem<'s>>);
+pub struct Map<'s>(pub Separated<'s, MapItem<'s>>);
 
 fn value_map(s: &str) -> IResult<Map> {
     map(
@@ -163,13 +163,6 @@ fn value_map(s: &str) -> IResult<Map> {
         ),
         Map,
     )(s)
-}
-
-#[apply(ast)]
-#[derive(Display)]
-pub struct Unit<'s>(&'s str);
-fn value_unit(s: &str) -> IResult<Unit> {
-    map(ident, Unit)(s)
 }
 
 #[apply(ast)]

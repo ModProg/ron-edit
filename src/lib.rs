@@ -16,7 +16,7 @@ use nom::{Finish, Parser};
 #[cfg(test)]
 use serde::Serialize;
 use unicode_ident::{is_xid_continue, is_xid_start};
-use value::Value;
+pub use value::{Char, Int, List, Map, MapItem, NamedField, Str, Struct, Tuple, Value};
 
 type Error<'a> = VerboseError<&'a str>;
 type IResult<'a, T> = nom::IResult<&'a str, T, Error<'a>>;
@@ -64,7 +64,7 @@ pub struct Attribute<'s> {
     pub after_exclamation: Whitespace<'s>,
     pub after_bracket: Whitespace<'s>,
     pub after_enable: Whitespace<'s>,
-    pub extentions: Separated<'s, WsLead<'s, &'s str>>,
+    pub extentions: Separated<'s, &'s str>,
     pub after_paren: Whitespace<'s>,
 }
 
@@ -73,13 +73,11 @@ pub struct WsLead<'s, T> {
     pub leading: Whitespace<'s>,
     pub content: T,
 }
-
 impl<T: Display> Display for WsLead<'_, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}{}", self.leading, self.content)
     }
 }
-
 fn ws_lead<'a, T>(
     t: impl Parser<&'a str, T, Error<'a>>,
 ) -> impl Parser<&'a str, WsLead<'a, T>, Error<'a>> {
@@ -95,19 +93,41 @@ pub struct WsFollowed<'s, T> {
     pub content: T,
     pub following: Whitespace<'s>,
 }
-
 impl<T: Display> Display for WsFollowed<'_, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}{}", self.content, self.following)
     }
 }
-
 fn ws_followed<'a, T>(
     t: impl Parser<&'a str, T, Error<'a>>,
 ) -> impl Parser<&'a str, WsFollowed<'a, T>, Error<'a>> {
     map(pair(t, ws), |(content, following)| WsFollowed {
         content,
         following,
+    })
+}
+
+#[apply(ast)]
+#[derive(Default)]
+pub struct WsWrapped<'s, T> {
+    pub leading: Whitespace<'s>,
+    pub content: T,
+    pub following: Whitespace<'s>,
+}
+impl<T: Display> Display for WsWrapped<'_, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}{}{}", self.leading, self.content, self.following)
+    }
+}
+fn ws_wrapped<'a, T>(
+    t: impl Parser<&'a str, T, Error<'a>>,
+) -> impl Parser<&'a str, WsWrapped<'a, T>, Error<'a>> {
+    map(tuple((ws, t, ws)), |(leading, content, following)| {
+        WsWrapped {
+            leading,
+            content,
+            following,
+        }
     })
 }
 
@@ -126,10 +146,15 @@ impl Display for Ws<'_> {
         }
     }
 }
+impl Ws<'_> {
+    pub fn is_comment(&self) -> bool {
+        !matches!(self, Self::Space(_))
+    }
+}
 
 #[apply(ast)]
 #[derive(Default)]
-pub struct Whitespace<'s>(Vec<Ws<'s>>);
+pub struct Whitespace<'s>(pub Vec<Ws<'s>>);
 
 impl Display for Whitespace<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -139,7 +164,7 @@ impl Display for Whitespace<'_> {
 
 #[apply(ast)]
 pub struct Separated<'s, T> {
-    pub values: Vec<(T, Whitespace<'s>)>,
+    pub values: Vec<WsWrapped<'s, T>>,
     /// When formatting with [`Display`] comma is only shown when
     /// [`Self::values`] is not empty.
     pub trailing_comma: bool,
@@ -153,13 +178,11 @@ impl<T: Display> Display for Separated<'_, T> {
             trailing_comma,
             trailing_ws,
         } = self;
-        let Some(((last, last_ws), rest)) = values.split_last() else {
+        let Some((last, rest)) = values.split_last() else {
             return write!(f, "{trailing_ws}")
         };
-        for (t, ws) in rest {
-            write!(f, "{t}{ws},")?;
-        }
-        write!(f, "{last}{last_ws}")?;
+        rest.iter().try_for_each(|i| write!(f, "{i},"))?;
+        write!(f, "{last}")?;
         if *trailing_comma {
             write!(f, ",")?;
         }
@@ -215,7 +238,7 @@ fn extention_attr(input: &str) -> IResult<Attribute> {
             tag("enable"),
             ws,
             char('('),
-            separated(ws_lead(ident)),
+            separated(ident),
             char(')'),
             ws,
             char(']'),
@@ -289,7 +312,7 @@ fn separated<'a, T, P: Parser<&'a str, T, Error<'a>>>(
 ) -> impl FnMut(&'a str) -> IResult<Separated<T>> {
     map(
         tuple((
-            separated_list0(char(','), pair(p, ws)),
+            separated_list0(char(','), ws_wrapped(p)),
             opt(preceded(char(','), ws)),
         )),
         |(values, trailing_comma_ws)| Separated {
