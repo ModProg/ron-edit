@@ -186,7 +186,7 @@ fn value_tuple(s: &str) -> IResult<Tuple> {
 #[derive(Display)]
 #[display(fmt = "{key}{after_key}:{value}")]
 pub struct NamedField<'s> {
-    pub key: WsLead<'s, &'s str>,
+    pub key: &'s str,
     pub after_key: Whitespace<'s>,
     pub value: WsLead<'s, Value<'s>>,
 }
@@ -206,7 +206,7 @@ fn value_struct(s: &str) -> IResult<Struct> {
                 delimited(
                     char('('),
                     separated(map(
-                        tuple((ws_lead(ident), terminated(ws, char(':')), ws_lead(value))),
+                        tuple((ident, terminated(ws, char(':')), ws_lead(value))),
                         |(key, after_key, value)| NamedField {
                             key,
                             after_key,

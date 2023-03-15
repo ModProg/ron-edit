@@ -23,20 +23,22 @@ File(
         ]),
         extentions: Separated(
           values: [
-            (WsLead(
+            WsWrapped(
               leading: Whitespace([
                 Space(" "),
               ]),
               content: "unwrap_newtypes",
-            ), Whitespace([
-              Space("\n "),
-            ])),
-            (WsLead(
+              following: Whitespace([
+                Space("\n "),
+              ]),
+            ),
+            WsWrapped(
               leading: Whitespace([
                 Space(" "),
               ]),
               content: "implicit_some",
-            ), Whitespace([])),
+              following: Whitespace([]),
+            ),
           ],
           trailing_comma: false,
           trailing_ws: Whitespace([]),
@@ -60,47 +62,49 @@ File(
       ident: None,
       fields: Separated(
         values: [
-          (NamedField(
-            key: WsLead(
-              leading: Whitespace([
-                Space("\n    "),
-              ]),
-              content: "value",
-            ),
-            after_key: Whitespace([
-              Space(" \n\n    "),
+          WsWrapped(
+            leading: Whitespace([
+              Space("\n    "),
             ]),
-            value: WsLead(
-              leading: Whitespace([
-                Space(" "),
+            content: NamedField(
+              key: "value",
+              after_key: Whitespace([
+                Space(" \n\n    "),
               ]),
-              content: Str(Baked("hello")),
+              value: WsLead(
+                leading: Whitespace([
+                  Space(" "),
+                ]),
+                content: Str(Baked("hello")),
+              ),
             ),
-          ), Whitespace([
-            Space(" "),
-            LineComment(" comment\n"),
-            Space("    "),
-          ])),
-          (NamedField(
-            key: WsLead(
-              leading: Whitespace([
-                Space("\n    "),
-              ]),
-              content: "something_else",
-            ),
-            after_key: Whitespace([
+            following: Whitespace([
               Space(" "),
-              BlockComment(" "),
+              LineComment(" comment\n"),
+              Space("    "),
             ]),
-            value: WsLead(
-              leading: Whitespace([
+          ),
+          WsWrapped(
+            leading: Whitespace([
+              Space("\n    "),
+            ]),
+            content: NamedField(
+              key: "something_else",
+              after_key: Whitespace([
                 Space(" "),
+                BlockComment(" "),
               ]),
-              content: Str(Baked("hi")),
+              value: WsLead(
+                leading: Whitespace([
+                  Space(" "),
+                ]),
+                content: Str(Baked("hi")),
+              ),
             ),
-          ), Whitespace([
-            Space("\n"),
-          ])),
+            following: Whitespace([
+              Space("\n"),
+            ]),
+          ),
         ],
         trailing_comma: false,
         trailing_ws: Whitespace([]),
