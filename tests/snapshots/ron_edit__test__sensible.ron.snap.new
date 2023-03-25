@@ -1,0 +1,161 @@
+---
+source: src/lib.rs
+assertion_line: 396
+expression: ron
+---
+File(
+  extentions: [],
+  value: WsLead(
+    leading: Whitespace([]),
+    content: Struct(Struct(
+      ident: None,
+      fields: Separated(
+        values: [
+          WsWrapped(
+            leading: Whitespace([
+              Space("\n    "),
+            ]),
+            content: NamedField(
+              key: "value",
+              after_key: Whitespace([]),
+              value: WsLead(
+                leading: Whitespace([
+                  Space(" "),
+                ]),
+                content: Str(Baked("string")),
+              ),
+            ),
+            following: Whitespace([]),
+          ),
+          WsWrapped(
+            leading: Whitespace([
+              Space("\n    "),
+            ]),
+            content: NamedField(
+              key: "value",
+              after_key: Whitespace([]),
+              value: WsLead(
+                leading: Whitespace([
+                  Space(" "),
+                ]),
+                content: Float(Float("inf")),
+              ),
+            ),
+            following: Whitespace([]),
+          ),
+          WsWrapped(
+            leading: Whitespace([
+              Space("\n    "),
+            ]),
+            content: NamedField(
+              key: "value",
+              after_key: Whitespace([]),
+              value: WsLead(
+                leading: Whitespace([
+                  Space(" "),
+                ]),
+                content: Float(Float("+NaN")),
+              ),
+            ),
+            following: Whitespace([]),
+          ),
+          WsWrapped(
+            leading: Whitespace([
+              Space("\n    "),
+            ]),
+            content: NamedField(
+              key: "map",
+              after_key: Whitespace([]),
+              value: WsLead(
+                leading: Whitespace([
+                  Space(" "),
+                ]),
+                content: Map(Map(Separated(
+                  values: [
+                    WsWrapped(
+                      leading: Whitespace([
+                        Space("\n        "),
+                      ]),
+                      content: MapItem(
+                        key: Unit("A"),
+                        after_key: Whitespace([]),
+                        value: WsLead(
+                          leading: Whitespace([
+                            Space(" "),
+                          ]),
+                          content: Str(Baked("hello")),
+                        ),
+                      ),
+                      following: Whitespace([]),
+                    ),
+                    WsWrapped(
+                      leading: Whitespace([
+                        Space("\n        "),
+                      ]),
+                      content: MapItem(
+                        key: List(List(Separated(
+                          values: [
+                            WsWrapped(
+                              leading: Whitespace([]),
+                              content: Int(Int("1")),
+                              following: Whitespace([]),
+                            ),
+                            WsWrapped(
+                              leading: Whitespace([
+                                Space(" "),
+                              ]),
+                              content: Int(Int("2")),
+                              following: Whitespace([]),
+                            ),
+                          ],
+                          trailing_comma: false,
+                          trailing_ws: Whitespace([]),
+                        ))),
+                        after_key: Whitespace([]),
+                        value: WsLead(
+                          leading: Whitespace([
+                            Space(" "),
+                          ]),
+                          content: Unit("Something"),
+                        ),
+                      ),
+                      following: Whitespace([
+                        Space("\n    "),
+                      ]),
+                    ),
+                  ],
+                  trailing_comma: false,
+                  trailing_ws: Whitespace([]),
+                ))),
+              ),
+            ),
+            following: Whitespace([]),
+          ),
+          WsWrapped(
+            leading: Whitespace([
+              Space("\n    "),
+            ]),
+            content: NamedField(
+              key: "r#12+10.3-x",
+              after_key: Whitespace([]),
+              value: WsLead(
+                leading: Whitespace([
+                  Space(" "),
+                ]),
+                content: Str(Baked("five")),
+              ),
+            ),
+            following: Whitespace([
+              Space("\n"),
+            ]),
+          ),
+        ],
+        trailing_comma: false,
+        trailing_ws: Whitespace([]),
+      ),
+    )),
+  ),
+  trailing_ws: Whitespace([
+    Space("\n"),
+  ]),
+)

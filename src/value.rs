@@ -35,8 +35,13 @@ fn value_int(s: &str) -> IResult<Int> {
     map(
         recognize(tuple((
             sign,
-            opt(tuple((char('0'), alt((char('b'), char('o'), char('x')))))),
-            is_a("0123456789ABCDEFabcdef_"),
+            alt((
+                is_a("0123456789_"),
+                preceded(
+                    char('0'),
+                    cut(preceded(is_a("box"), is_a("0123456789ABCDEFabcdef_"))),
+                ),
+            )),
         ))),
         Int,
     )(s)
@@ -81,15 +86,17 @@ pub enum Str<'s> {
 fn value_str(s: &str) -> IResult<Str> {
     alt((
         map(
-            delimited(
+            preceded(
                 char::<&str, Error>('"'),
-                recognize(many0(alt((
-                    tag("\\\""),
-                    tag("\\\\"),
-                    tag("\\"),
-                    is_not("\\\""),
-                )))),
-                char('"'),
+                cut(terminated(
+                    recognize(many0(alt((
+                        tag("\\\""),
+                        tag("\\\\"),
+                        tag("\\"),
+                        is_not("\\\""),
+                    )))),
+                    char('"'),
+                )),
             ),
             Str::Baked,
         ),
@@ -101,10 +108,12 @@ fn raw_string(s: &str) -> IResult<(usize, &str)> {
     let (s, _) = char('r')(s)?;
     let (s, pounds) = many0_count(char('#'))(s)?;
     let terminator = format!("\"{}", "#".repeat(pounds));
-    let res = delimited(
+    let res = preceded(
         char('"'),
-        take_until(terminator.as_str()),
-        tag(terminator.as_str()),
+        cut(terminated(
+            take_until(terminator.as_str()),
+            tag(terminator.as_str()),
+        )),
     )
     .map(|content| (pounds, content))
     .parse(s);
@@ -117,10 +126,9 @@ fn raw_string(s: &str) -> IResult<(usize, &str)> {
 pub struct Char<'s>(pub &'s str);
 fn value_char(s: &str) -> IResult<Char> {
     map(
-        delimited(
+        preceded(
             char::<&str, Error>('\''),
-            tag("\\'").or(is_not("'")),
-            char('\''),
+            cut(terminated(tag("\\'").or(is_not("'")), char('\''))),
         ),
         Char,
     )(s)
@@ -131,14 +139,17 @@ fn value_char(s: &str) -> IResult<Char> {
 #[display(fmt = "[{_0}]")]
 pub struct List<'s>(pub Separated<'s, Value<'s>>);
 fn value_list(s: &str) -> IResult<List> {
-    map(delimited(char('['), separated(value), char(']')), List)(s)
+    map(
+        preceded(char('['), cut(terminated(separated(value), char(']')))),
+        List,
+    )(s)
 }
 
 #[apply(ast)]
 #[derive(Display)]
 #[display(fmt = "{key}{after_key}:{value}")]
 pub struct MapItem<'s> {
-    pub key: Str<'s>,
+    pub key: Value<'s>,
     pub after_key: Whitespace<'s>,
     pub value: WsLead<'s, Value<'s>>,
 }
@@ -149,19 +160,24 @@ pub struct MapItem<'s> {
 pub struct Map<'s>(pub Separated<'s, MapItem<'s>>);
 
 fn value_map(s: &str) -> IResult<Map> {
-    map(
-        delimited(
-            char('['),
-            separated(tuple((value_str, ws, char(':'), ws_lead(value))).map(
-                |(key, after_key, _, value)| MapItem {
-                    key,
-                    after_key,
-                    value,
-                },
-            )),
-            char(']'),
+    context(
+        "map",
+        map(
+            preceded(
+                char('{'),
+                cut(terminated(
+                    separated(tuple((value, ws, char(':'), ws_lead(value))).map(
+                        |(key, after_key, _, value)| MapItem {
+                            key,
+                            after_key,
+                            value,
+                        },
+                    )),
+                    char('}'),
+                )),
+            ),
+            Map,
         ),
-        Map,
     )(s)
 }
 

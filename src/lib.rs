@@ -150,6 +150,10 @@ impl Ws<'_> {
     pub fn is_comment(&self) -> bool {
         !matches!(self, Self::Space(_))
     }
+
+    pub fn is_line_comment(&self) -> bool {
+        matches!(self, Self::LineComment(_))
+    }
 }
 
 #[apply(ast)]
@@ -271,10 +275,16 @@ fn extention_attr(input: &str) -> IResult<Attribute> {
 }
 
 fn ident(input: &str) -> IResult<&str> {
-    recognize(pair(
-        // TODO make issue about adding a take_one(fn(char)->bool)
-        alt((tag("_"), take_while_m_n(1, 1, is_xid_start))),
-        take_while(is_xid_continue),
+    alt((
+        recognize(pair(
+            tag("r#"),
+            cut(many1(alt((take_while1(is_xid_continue), is_a("+-."))))),
+        )),
+        recognize(pair(
+            // TODO make issue about adding a take_one(fn(char)->bool)
+            alt((tag("_"), take_while_m_n(1, 1, is_xid_start))),
+            take_while(is_xid_continue),
+        )),
     ))(input)
 }
 
@@ -310,16 +320,20 @@ fn ws(input: &str) -> IResult<Whitespace> {
 fn separated<'a, T, P: Parser<&'a str, T, Error<'a>>>(
     p: P,
 ) -> impl FnMut(&'a str) -> IResult<Separated<T>> {
-    map(
-        tuple((
-            separated_list0(char(','), ws_wrapped(p)),
-            opt(preceded(char(','), ws)),
-        )),
-        |(values, trailing_comma_ws)| Separated {
-            values,
-            trailing_comma: trailing_comma_ws.is_some(),
-            trailing_ws: trailing_comma_ws.unwrap_or_default(),
-        },
+    context(
+        "separated",
+        map(
+            tuple((
+                separated_list0(char(','), ws_wrapped(p)),
+                opt(char(',')),
+                ws,
+            )),
+            |(values, trailing_comma, trailing_ws)| Separated {
+                values,
+                trailing_comma: trailing_comma.is_some(),
+                trailing_ws,
+            },
+        ),
     )
 }
 
@@ -378,7 +392,9 @@ mod test {
 
             assert_eq!(ron.to_string(), contents);
 
-            insta::assert_ron_snapshot!(file.path().display().to_string(), ron);
+            insta::with_settings!({snapshot_path => "../tests/snapshots"},{
+                insta::assert_ron_snapshot!(file.path().display().to_string(), ron);
+            })
         }
     }
 }
