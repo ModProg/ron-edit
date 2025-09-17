@@ -146,13 +146,34 @@ fn value_list(s: &str) -> IResult<List> {
 }
 
 #[apply(ast)]
-#[derive(Display)]
-#[display(fmt = "{key}{after_key}:{value}")]
 pub struct MapItem<'s> {
+    pub attributes: Option<Vec<WsLead<'s, crate::InlineAttribute<'s>>>>,
     pub key: Value<'s>,
     pub after_key: Whitespace<'s>,
     pub value: WsLead<'s, Value<'s>>,
 }
+
+impl<'s> Display for MapItem<'s> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(ref attrs) = self.attributes {
+            for attr in attrs {
+                write!(f, "{}", attr)?;
+            }
+        }
+        write!(
+            f,
+            "{}{after_key}:{value}",
+            self.key,
+            after_key = self.after_key,
+            value = self.value
+        )
+    }
+}
+
+// Helper struct to format attribute list - no longer needed with custom Display
+// #[derive(Debug, PartialEq)]
+// #[cfg_attr(test, derive(serde::Serialize))]
+// pub struct AttributeList<'s>(pub Option<Vec<WsLead<'s, crate::InlineAttribute<'s>>>>);
 
 #[apply(ast)]
 #[derive(Display)]
@@ -166,13 +187,30 @@ fn value_map(s: &str) -> IResult<Map> {
             preceded(
                 char('{'),
                 cut(terminated(
-                    separated(tuple((value, ws, char(':'), ws_lead(value))).map(
-                        |(key, after_key, _, value)| MapItem {
-                            key,
-                            after_key,
+                    separated(
+                        tuple((
+                            ws,
+                            many0(terminated(ws_lead(inline_attribute), ws)),
                             value,
-                        },
-                    )),
+                            ws,
+                            char(':'),
+                            ws_lead(value),
+                        ))
+                        .map(
+                            |(_leading_ws, attributes, key, after_key, _, value)| {
+                                MapItem {
+                                    attributes: if attributes.is_empty() {
+                                        None
+                                    } else {
+                                        Some(attributes)
+                                    },
+                                    key,
+                                    after_key,
+                                    value,
+                                }
+                            },
+                        ),
+                    ),
                     char('}'),
                 )),
             ),

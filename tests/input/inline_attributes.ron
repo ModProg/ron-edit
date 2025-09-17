@@ -1,0 +1,7 @@
+{
+  #[repeat = 5]
+  #[schema = "DbSchema"]  
+  DbTable: ["item1", "item2", "item3"],
+  
+  normal_field: "no_attributes"
+}

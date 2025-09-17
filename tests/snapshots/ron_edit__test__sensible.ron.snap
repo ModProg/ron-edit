@@ -76,6 +76,7 @@ File(
                         Space("\n        "),
                       ]),
                       content: MapItem(
+                        attributes: None,
                         key: Unit("A"),
                         after_key: Whitespace([]),
                         value: WsLead(
@@ -92,6 +93,7 @@ File(
                         Space("\n        "),
                       ]),
                       content: MapItem(
+                        attributes: None,
                         key: List(List(Separated(
                           values: [
                             WsWrapped(
