@@ -170,11 +170,6 @@ impl<'s> Display for MapItem<'s> {
     }
 }
 
-// Helper struct to format attribute list - no longer needed with custom Display
-// #[derive(Debug, PartialEq)]
-// #[cfg_attr(test, derive(serde::Serialize))]
-// pub struct AttributeList<'s>(pub Option<Vec<WsLead<'s, crate::InlineAttribute<'s>>>>);
-
 #[apply(ast)]
 #[derive(Display)]
 #[display(fmt = "{{{_0}}}")]
