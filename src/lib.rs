@@ -9,7 +9,7 @@ use nom::branch::*;
 use nom::bytes::complete::*;
 use nom::character::complete::*;
 use nom::combinator::*;
-use nom::error::{context, VerboseError};
+use nom::error::{VerboseError, context};
 use nom::multi::*;
 use nom::sequence::*;
 use nom::{Finish, Parser};
@@ -66,6 +66,39 @@ pub struct Attribute<'s> {
     pub after_enable: Whitespace<'s>,
     pub extentions: Separated<'s, &'s str>,
     pub after_paren: Whitespace<'s>,
+}
+
+/// Represents an inline attribute that can appear anywhere in RON
+/// Syntax: #[ident] or #[ident = value]
+#[apply(ast)]
+#[derive(Display)]
+pub enum InlineAttribute<'s> {
+    #[display(fmt = "#{after_pound}[{after_bracket}{ident}{after_ident}]")]
+    Ident {
+        after_pound: Whitespace<'s>,
+        after_bracket: Whitespace<'s>,
+        ident: &'s str,
+        after_ident: Whitespace<'s>,
+    },
+    #[display(
+        fmt = "#{after_pound}[{after_bracket}{ident}{after_ident}={after_equals}{value}{after_value}]"
+    )]
+    KeyValue {
+        after_pound: Whitespace<'s>,
+        after_bracket: Whitespace<'s>,
+        ident: &'s str,
+        after_ident: Whitespace<'s>,
+        after_equals: Whitespace<'s>,
+        value: Value<'s>,
+        after_value: Whitespace<'s>,
+    },
+    #[display(fmt = "#{after_pound}[{after_bracket}{expr}{after_expr}]")]
+    Expr {
+        after_pound: Whitespace<'s>,
+        after_bracket: Whitespace<'s>,
+        expr: Value<'s>,
+        after_expr: Whitespace<'s>,
+    },
 }
 
 #[apply(ast)]
@@ -183,7 +216,7 @@ impl<T: Display> Display for Separated<'_, T> {
             trailing_ws,
         } = self;
         let Some((last, rest)) = values.split_last() else {
-            return write!(f, "{trailing_ws}")
+            return write!(f, "{trailing_ws}");
         };
         rest.iter().try_for_each(|i| write!(f, "{i},"))?;
         write!(f, "{last}")?;
@@ -271,6 +304,57 @@ fn extention_attr(input: &str) -> IResult<Attribute> {
                 after_paren,
             }
         },
+    )(input)
+}
+
+fn inline_attribute(input: &str) -> IResult<InlineAttribute> {
+    context(
+        "inline_attribute",
+        preceded(
+            char('#'),
+            cut(delimited(
+                char('['),
+                cut(preceded(
+                    ws,
+                    alt((
+                        // #[ident = value]
+                        map(
+                            tuple((ident, ws, char('='), ws, value::value, ws)),
+                            |(ident, after_ident, _, after_equals, value, after_value)| {
+                                InlineAttribute::KeyValue {
+                                    after_pound: Whitespace::default(),
+                                    after_bracket: Whitespace::default(),
+                                    ident,
+                                    after_ident,
+                                    after_equals,
+                                    value,
+                                    after_value,
+                                }
+                            },
+                        ),
+                        // #[ident]
+                        map(pair(ident, ws), |(ident, after_ident)| {
+                            InlineAttribute::Ident {
+                                after_pound: Whitespace::default(),
+                                after_bracket: Whitespace::default(),
+                                ident,
+                                after_ident,
+                            }
+                        }),
+                        // #[expr]
+                        map(pair(value::value, ws), |(expr, after_expr)| {
+                            InlineAttribute::Expr {
+                                after_pound: Whitespace::default(),
+                                after_bracket: Whitespace::default(),
+                                expr,
+                                after_expr,
+                            }
+                        }),
+                    )),
+                )),
+                char(']'),
+            )),
+        ),
     )(input)
 }
 

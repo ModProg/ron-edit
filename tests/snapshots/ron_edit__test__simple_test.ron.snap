@@ -1,0 +1,36 @@
+---
+source: src/lib.rs
+expression: ron
+---
+File(
+  extentions: [],
+  value: WsLead(
+    leading: Whitespace([]),
+    content: Map(Map(Separated(
+      values: [
+        WsWrapped(
+          leading: Whitespace([
+            Space("\n  "),
+          ]),
+          content: MapItem(
+            attributes: None,
+            key: Unit("simple_field"),
+            after_key: Whitespace([]),
+            value: WsLead(
+              leading: Whitespace([
+                Space(" "),
+              ]),
+              content: Str(Baked("value")),
+            ),
+          ),
+          following: Whitespace([
+            Space("\n"),
+          ]),
+        ),
+      ],
+      trailing_comma: false,
+      trailing_ws: Whitespace([]),
+    ))),
+  ),
+  trailing_ws: Whitespace([]),
+)
